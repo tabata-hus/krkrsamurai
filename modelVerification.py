@@ -16,6 +16,20 @@ from chainer.dataset import concat_examples
 from chainer import iterators
 from chainer import serializers
 
+#↓の変数が0だとオール、1だとハーフ。
+labelingFlag = 1
+#ラベルセット
+def label_set(left,right):
+    if(labelingFlag == 0):
+        if(((misalignment * i) >= left) and (cutSize + (misalignment * i)) <= right):
+            return True
+        else:
+            return False
+    else:
+        if(((misalignment * i) >= left and (cutSize +(misalignment * i) <= right))or((misalignment * i) >= (left-cutSize/2) and (cutSize +(misalignment * i) <= (right-cutSize/2)))or((misalignment * i) >= (left+cutSize/2) and (cutSize +(misalignment * i) <= (right+cutSize/2)))):
+            return True
+        else:
+            return False
 
 test = LabeledImageDataset('./test/cut_set.txt',root='./')
 #切り取りサイズ(px)
@@ -25,6 +39,22 @@ misalignment = 5
 
 imageWidth = (350-cutSize)/misalignment
 imageHeight = (400-cutSize)/misalignment
+
+with open('blood_test.csv') as f:
+    reader = csv.reader(f)
+    csvResult = [row for row in reader]
+
+teahcerAverage = []
+for j in range(len(csvResult)):
+  tmp = []
+  for i in range(int(imageWidth)):
+    teacherRight = int(csvResult[j][1])
+    teacherLeft = int(csvResult[j][0])
+    if(label_set(teacherLeft,teacherRight)):
+      tmp.append(1)
+    else:
+      tmp.append(0)
+  teahcerAverage.append(tmp)
 
 def transform(data):
   img,lable = data
@@ -86,21 +116,35 @@ for i in range(21216):
   #       print('x:',5*(i%68),'y:',yPoint)
 
 imageResult = imageResult.reshape([-1,68])
-lastResult = []
+tmpAverage = []
+resultAverage = []
 print(np.shape(imageResult))
 tempNum = 0
-for jj in range(np.shape(imageResult)[0]//78):
+#画像枚数分繰り返すfor jj
+for jj in range(np.shape(imageResult)[0]//int(imageHeight)):
+      #
       for j in range(np.shape(imageResult)[1]):
             tmp = 0
-            for i in range(78*jj,78*(jj+1)):
+            for i in range(int(imageHeight)*jj,int(imageHeight)*(jj+1)):
                   tmp += imageResult[i,j]
-            tmp /= 78
-            lastResult.append(tmp)
-      print(lastResult)
-      lastResult = []
+            tmp /= int(imageHeight)
+            tmpAverage.append(tmp)
+      #print(tmpAverage)
+      resultAverage.append(tmpAverage)
+      tmpAverage = []
 
+print(teahcerAverage)
+print(resultAverage)
 
-
+threshold = 0.5
+print("threshold is",threshold)
+for j in range(len(csvResult)):
+  innerDiameter = []
+  for i in range(int(imageWidth)):
+    if(resultAverage[j][i] >= threshold):
+      innerDiameter.append(i)
+  print("InnerDiameter",misalignment*innerDiameter[0],cutSize + misalignment * innerDiameter[len(innerDiameter)-1])
+  print("TeacherInnerDiameter",csvResult[j][0],csvResult[j][1])
 
 # for j in range(np.shape(imageResult)[1]):
 #       tmp = 0

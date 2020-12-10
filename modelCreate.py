@@ -1,5 +1,5 @@
 import chainer
-import cupy
+#import cupy
 import random
 import numpy
 import numpy as np
