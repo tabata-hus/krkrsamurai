@@ -1,5 +1,6 @@
 import chainer
 #import cupy
+import config as cf
 import random
 import numpy
 import numpy as np
@@ -29,7 +30,7 @@ def transform(data):
 train_val = chainer.datasets.TransformDataset(train_val,transform)
 test = chainer.datasets.TransformDataset(test,transform)
 
-train, valid = split_dataset_random(train_val, 40000, seed=0)
+train, valid = split_dataset_random(train_val, int(len(cf.afterImageElement)*cf.modelCreateLearningPercentage), seed=0)
 
 print('Training dataset size:', len(train))
 print('Validation dataset size:', len(valid))
@@ -37,7 +38,7 @@ print('Validation dataset size:', len(valid))
 
 #バッチサイズが増えると学習回数が増える（過学習の危険あり）
 #レイヤー数も増やしたほうが精度は上がるだろう（過学習を恐れろ）
-batchsize = 128
+batchsize = cf.batchSize
 
 train_iter = iterators.SerialIterator(train, batchsize)
 valid_iter = iterators.SerialIterator(valid, batchsize, repeat=False, shuffle=False)
@@ -54,7 +55,7 @@ reset_seed(0)
 
 class MLP(chainer.Chain):
 
-    def __init__(self, n_mid_units=1000, n_out=2):
+    def __init__(self, n_mid_units=cf.middleLayer, n_out=2):
         super(MLP, self).__init__()
         # パラメータを持つ層の登録
         with self.init_scope():
@@ -68,7 +69,7 @@ class MLP(chainer.Chain):
         h2 = F.relu(self.l2(h1))
         return self.l3(h2)
 
-gpu_id = -1  # CPUを用いる場合は、この値を-1にしてください
+gpu_id = cf.gpu_id  # CPUを用いる場合は、この値を-1にしてください
 
 net = MLP()
 
@@ -83,7 +84,7 @@ optimizer = optimizers.SGD(lr=0.01).setup(net)
 
 
 
-max_epoch = 100
+max_epoch = cf.maxEpoch
 
 while train_iter.epoch < max_epoch:
     # ---------- 学習の1イテレーション ----------

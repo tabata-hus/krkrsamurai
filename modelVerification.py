@@ -1,5 +1,6 @@
 import chainer
 from PIL import Image
+import config as cf
 import csv
 import random
 import numpy
@@ -17,7 +18,7 @@ from chainer import iterators
 from chainer import serializers
 
 #↓の変数が0だとオール、1だとハーフ。
-labelingFlag = 1
+labelingFlag = cf.labelingFlag
 #ラベルセット
 def label_set(left,right):
     if(labelingFlag == 0):
@@ -33,9 +34,9 @@ def label_set(left,right):
 
 test = LabeledImageDataset('./test/cut_set.txt',root='./')
 #切り取りサイズ(px)
-cutSize = 10
+cutSize = cf.cutSize
 #一度にズラす値(px)
-misalignment = 5
+misalignment = cf.misalignment
 
 imageWidth = (350-cutSize)/misalignment
 imageHeight = (400-cutSize)/misalignment
@@ -74,7 +75,7 @@ reset_seed(0)
 
 class MLP(chainer.Chain):
 
-    def __init__(self, n_mid_units=1000, n_out=2):
+    def __init__(self, n_mid_units=cf.middleLayer, n_out=2):
         super(MLP, self).__init__()
         # パラメータを持つ層の登録
         with self.init_scope():
@@ -88,14 +89,14 @@ class MLP(chainer.Chain):
         h2 = F.relu(self.l2(h1))
         return self.l3(h2)
 
-gpu_id = -1  # CPUを用いる場合は、この値を-1にしてください
+gpu_id = cf.gpu_id  # CPUを用いる場合は、この値を-1にしてください
 
 
 loadModel = 'my_mnist.model'
 infer_net = MLP()
 serializers.load_npz(loadModel,infer_net)
 imageResult = np.array([])
-for i in range(21216):
+for i in range(len(cf.testImageElement)):
   # 分類したいデータをモデルに渡します
   predict_data,predict_label = test[i]
   predict_data = predict_data[None, ...]
@@ -115,7 +116,7 @@ for i in range(21216):
   #             yPoint -= 400
   #       print('x:',5*(i%68),'y:',yPoint)
 
-imageResult = imageResult.reshape([-1,68])
+imageResult = imageResult.reshape([-1,int(imageWidth)])
 tmpAverage = []
 resultAverage = []
 print(np.shape(imageResult))
@@ -136,7 +137,7 @@ for jj in range(np.shape(imageResult)[0]//int(imageHeight)):
 print(teahcerAverage)
 print(resultAverage)
 
-threshold = 0.5
+threshold = cf.threshold
 print("threshold is",threshold)
 for j in range(len(csvResult)):
   innerDiameter = []

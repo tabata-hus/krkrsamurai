@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import config as cf
 import cv2
 import csv
 
@@ -14,7 +15,7 @@ for i in range(len(csvResult)):
 
 
 #↓の変数が0だとオール、1だとハーフ。
-labelingFlag = 1
+labelingFlag = cf.labelingFlag
 #ラベルセット
 def label_set(left,right):
     if(labelingFlag == 0):
@@ -30,9 +31,9 @@ def label_set(left,right):
 
 path = './after/cut_set.txt'
 #切り取りサイズ(px)
-cutSize = 10
+cutSize = cf.cutSize
 #一度にズラす値(px)
-misalignment = 5
+misalignment = cf.misalignment
 
 imageWidth = (350-cutSize)/misalignment
 imageHeight = (400-cutSize)/misalignment
