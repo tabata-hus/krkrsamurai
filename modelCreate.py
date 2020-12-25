@@ -23,9 +23,9 @@ test = LabeledImageDataset('./test/cut_set.txt',root='./')
 
 
 def transform(data):
-  img,lable = data
+  img,label = data
   img = img/255
-  return img,lable
+  return img,label
 
 train_val = chainer.datasets.TransformDataset(train_val,transform)
 test = chainer.datasets.TransformDataset(test,transform)
