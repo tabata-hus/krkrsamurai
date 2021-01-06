@@ -29,6 +29,9 @@ train_val = chainer.datasets.TransformDataset(train_val,transform)
 
 
 inputAverageList = []
+inputAverageListThreshold = []
+threshold = 0.12
+num = 10000
 inputAverageX = []
 inputAverageY = []
 # for i in range(10):
@@ -36,12 +39,13 @@ inputAverageY = []
 #     for j in range(10):
 #         for x in range(10):
 
-for i in range(10000):
+for i in range(num):
     tmp = 0
     for j in range(10):
         for item in train_val[i][0][0][j]:
             tmp += item
     inputAverageList.append([tmp/100,train_val[i][1]])
+    inputAverageListThreshold.append([tmp/100,1 if tmp/100 <= threshold else 0])
     inputAverageX.append(tmp/100)
     inputAverageY.append(train_val[i][1])
     #print(tmp/100,train_val[i][1])
@@ -49,5 +53,13 @@ for i in range(10000):
 #print(inputAverageList)
 
 
-plt.scatter(inputAverageX,inputAverageY)
-plt.show()
+# plt.scatter(inputAverageX,inputAverageY)
+# plt.show()
+
+
+count = 0
+for i in range(num):
+  if(inputAverageList[i][1] == inputAverageListThreshold[i][1]):
+    count += 1
+print("Correct answer rate",count/num)
+print("Threshold",threshold)
